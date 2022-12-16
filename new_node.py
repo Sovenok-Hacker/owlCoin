@@ -81,7 +81,7 @@ def balance():
     for block in blockchain:
         for txion in block.data['transactions']:
             transactions.append(txion)
-    return json.dumps({'ok': True, 'balance': transactions})
+    return json.dumps({'ok': True, 'txs': transactions})
 @app.route('/blocks',methods=['GET','POST'])
 @limiter.limit("50/minute")
 def get_blocks():
