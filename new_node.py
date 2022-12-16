@@ -126,7 +126,7 @@ def create_task():
     except KeyError:
         return json.dumps({'ok': False, 'message': 'You must specify your address (to get a reward).'})
     if sysData.diff.get(addr) == None:
-        sysData.diff.update({addr: 2})
+        sysData.diff.update({addr: 5})
     y = random.randint(0, 1000000)
     task_id = int(random.randint(0, y * y))
     sysData.tasks.update({task_id: [y, sysData.diff[addr], time.time(), addr]})
