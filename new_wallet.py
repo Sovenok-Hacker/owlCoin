@@ -48,9 +48,9 @@ while True:
         print('Goodbye!')
         sys.exit()
     elif cmd.startswith('history'):
-        txs = requests.get(f'{node}/txs?addr={using}').json()
+        txs = requests.get(f'{node}/txs?addr={using}').json()['txs']
         balance = 0
-        for tx in txs['txs']:
+        for tx in txs:
             tx_type = '-' if tx[0] == using else '+'
             if tx_type == '-':
                 balance -= tx[2]
