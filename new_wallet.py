@@ -47,8 +47,17 @@ while True:
     if cmd.startswith('exit'):
         print('Goodbye!')
         sys.exit()
-    elif cmd.startswith('balance'):
-        balance = requests.get(f'{node}/balance?addr={using}').json()['balance']
+    elif cmd.startswith('history'):
+        txs = requests.get(f'{node}/txs?addr={using}').json()
+        balance = 0
+        for tx in txs:
+            tx_type = '-' if tx[0] == using else '+'
+            if tx_type == '-':
+                balance -= tx[2]
+            else:
+                balance += tx[2]
+            print()
+            print(f'{tx_type} | {tx[0]} => {tx[1]} | {tx[2]} OWL | {tx[3]}')
         print(f'Your balance: {balance} OWL')
     elif cmd.startswith('send'):
         from_addr = using
@@ -62,3 +71,8 @@ while True:
                 print('Transaction was submitted succefetly!')
             else:
                 print(data['message'])
+    elif cmd.startswith('help'):
+        print('send - send coins')
+        print('history - get balance and transacation history')
+        print('help - print this note')
+        print('exit - quit the wallet')
