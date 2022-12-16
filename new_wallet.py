@@ -50,7 +50,7 @@ while True:
     elif cmd.startswith('history'):
         txs = requests.get(f'{node}/txs?addr={using}').json()
         balance = 0
-        for tx in txs:
+        for tx in txs['txs']:
             tx_type = '-' if tx[0] == using else '+'
             if tx_type == '-':
                 balance -= tx[2]
