@@ -69,7 +69,7 @@ def meet():
             return {'ok': False, 'message': 'Your node didn`t answer ok.'}
     except:
         return {'ok': 'Error in requesting node.'}
-@app.route('/balance',methods=['GET','POST']) # get balance
+@app.route('/txs',methods=['GET','POST']) # get balance
 @limiter.limit("20/minute")
 def balance():
     try:
@@ -81,12 +81,7 @@ def balance():
     for block in blockchain:
         for txion in block.data['transactions']:
             transactions.append(txion)
-    for txion in transactions:
-        if txion[0] == addr:
-            result -= txion[2]
-        elif txion[1] == addr:
-            result += txion[2]
-    return json.dumps({'ok': True, 'balance': result})
+    return json.dumps({'ok': True, 'balance': transactions})
 @app.route('/blocks',methods=['GET','POST'])
 @limiter.limit("50/minute")
 def get_blocks():
