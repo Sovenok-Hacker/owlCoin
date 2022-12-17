@@ -29,12 +29,6 @@ else:
         i += 1
     print(f'{i}. Create a new wallet.')
     choice = int(input('=> '))
-    if choice.isnumeric():
-        choice = int(choice)
-    else:
-        print('You entered the wrong value!')
-        input('Press enter to close.')
-        sys.exit()
     if choice == i:
         wallet = create_wallet()
         with open(f'wallet{random.randint(0, 1000)}.json', 'w') as file:
@@ -63,20 +57,9 @@ while True:
             else:
                 balance += tx[2]
             print()
-            print(f'{tx_type} | {tx[0]} => {tx[1]} | {tx[2]} OWL | {tx[3]}')
+            print(f'{tx_type} | {tx[0]} => {tx[1]} | {tx[2]} OWL | {tx[3] if tx[3] else "No message"}')
+        print(f'Total: {len(txs)} transactions.')
         print(f'Your balance: {balance} OWL')
-    elif cmd.startswith('send'):
-        from_addr = using
-        to_addr = input('TO: => ')
-        amount = float(input('AMOUNT: => '))
-        message = input('MESSAGE: (leave empty for blank message) =>')
-        if input('Is everything correct? (Y, y, Да, да, N, n, Нет, нет) => ') in ['Y', 'y', 'Да', 'да']:
-            signature = SigningKey.from_string(bytes.fromhex(using_privkey)).sign(hashlib.sha256(f'{from_addr}{to_addr}{amount}{message}'.encode()).hexdigest().encode()).hex()
-            data = requests.post(f'{node}/transaction?amount={amount}&to={to_addr}&from={from_addr}&message={message}&sign={signature}').json()
-            if data['ok'] == True:
-                print('Transaction was submitted succefetly!')
-            else:
-                print(data['message'])
     elif cmd.startswith('balance'):
         txs = requests.get(f'{node}/txs?addr={using}').json()['txs']
         balance = 0
@@ -86,9 +69,20 @@ while True:
             else:
                 balance += tx[2]
         print(f'Your balance: {balance} OWL')
+    elif cmd.startswith('send'):
+        from_addr = using
+        to_addr = input('TO: => ')
+        amount = float(input('AMOUNT: => '))
+        message = input('MESSAGE: (leave empty for blank message) => ')
+        if input('Is everything correct? (Y, y, N, n) => ') in ['Y', 'y']:
+            signature = SigningKey.from_string(bytes.fromhex(using_privkey)).sign(hashlib.blake2s(f'{from_addr}{to_addr}{amount}{message}'.encode()).hexdigest().encode()).hex()
+            data = requests.post(f'{node}/transaction?amount={amount}&to={to_addr}&from={from_addr}&message={message}&sign={signature}').json()
+            if data['ok'] == True:
+                print('Transaction was submitted succefetly!')
+            else:
+                print(data['message'])
     elif cmd.startswith('help'):
-        print('send - send coins.')
-        print('balance - get balance.')
-        print('history - get balance and transacation history.')
-        print('help - print this note.')
-        print('exit - quit the wallet.')
+        print('send - send coins')
+        print('history - get balance and transacation history')
+        print('help - print this note')
+        print('exit - quit the wallet')
