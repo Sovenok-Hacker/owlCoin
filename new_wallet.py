@@ -87,7 +87,8 @@ while True:
                 balance += tx[2]
         print(f'Your balance: {balance} OWL')
     elif cmd.startswith('help'):
-        print('send - send coins')
-        print('history - get balance and transacation history')
-        print('help - print this note')
-        print('exit - quit the wallet')
+        print('send - send coins.')
+        print('balance - get balance.')
+        print('history - get balance and transacation history.')
+        print('help - print this note.')
+        print('exit - quit the wallet.')
