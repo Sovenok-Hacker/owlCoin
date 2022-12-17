@@ -1,4 +1,4 @@
-import requests, hashlib, time, math
+import requests, hashlib, time
 from colorama import init
 from colorama import Fore, Back, Style
 from multiprocessing import Process
@@ -37,17 +37,17 @@ def mining(core):
         start_time = time.time()
         while not hashlib.blake2s(f'{task[0] * i}'.encode()).hexdigest().endswith('0' * task[1]):
             if (time.time() - start_time) > 30:
-                if check_work(task) is False:
+                if not check_work(task):
                     print(Style.RESET_ALL + Back.BLUE +  f'CORE {core}', end='')
                     print(Style.RESET_ALL + Back.GREEN + ' New work!')
                     task = get_work()
                     print(Style.RESET_ALL + Back.BLUE +  f'CORE {core}', end='')
                     print(Style.RESET_ALL + Fore.YELLOW  + f' TASK: BLOCK={task[3]} ID={task[2]} DIFF={task[1]} Y={task[0]}')
                 else:
-                    speed = math.floor(i / (time.time() - start_time))
+                    speed = round(i / (time.time() - start_time))
                     speed = hash_calc(speed)
                     print(Style.RESET_ALL + Back.BLUE +  f'CORE {core}', end='')
-                    print(Style.RESET_ALL + Fore.YELLOW  + f' hashing: {speed} H/S.')
+                    print(Style.RESET_ALL + Fore.YELLOW  + f'Hashrate: {speed} H/S.')
                     i = 0
                 start_time = time.time()
             else:
@@ -56,11 +56,12 @@ def mining(core):
         print(Style.RESET_ALL + Back.BLUE +  f'CORE {core}', end='')
         print(Style.RESET_ALL + Back.GREEN + f' Block found! Number: {task[3]}')
         response = requests.post(f'{node}/check?task_id={task[2]}&x={i}').json()
-        if not response['ok']:
-            print(response['message'])
-            input()
+        if response['ok']:
+            print(Style.RESET_ALL + Back.GREEN + 'Accepted!')
+        else:
+            print(Style.RESET_ALL + Back.RED + 'Rejected. Reason: ' + response['message'])
 if __name__ == '__main__':
-    for i in range(8):
+    for i in range(multiprocessing.cpu_count()):
         time.sleep(0.25)
         i = Process(target=mining, args=(i,))
         i.start()

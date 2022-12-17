@@ -2,3 +2,5 @@ ecdsa
 flask
 flask_limiter
 requests
+plyvel
+colorama
