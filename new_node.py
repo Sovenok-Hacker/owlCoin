@@ -82,15 +82,36 @@ def balance():
         for txion in block.data['transactions']:
             transactions.append(txion)
     return json.dumps({'ok': True, 'txs': transactions})
+@app.route('/balance',methods=['GET','POST']) # get balance
+@limiter.limit("20/minute")
+def balance():
+    try:
+        addr = request.args['addr']
+    except KeyError:
+        return json.dumps({'ok': False, 'message': 'You must specify the address.'})
+    result = 0
+    transactions = []
+    for block in blockchain:
+        if not block.index == 1:
+            if block.pow[3] == addr: # if block mined by this addr
+                result += 1
+        for txion in block.data['transactions']:
+            transactions.append(txion)
+    for txion in transactions:
+        if txion[0] == addr:
+            result -= txion[2]
+        elif txion[1] == addr:
+            result += txion[2]
+    return json.dumps({'ok': True, 'balance': result})
 @app.route('/blocks',methods=['GET','POST'])
-@limiter.limit("50/minute")
+@limiter.limit("30/minute")
 def get_blocks():
     answer = []
     for block in blockchain:
         answer.append([block.data, block.timestamp, block.index, block.hash, block.phash, block.pow])
     return json.dumps(answer)
 @app.route('/transaction',methods=['POST']) # send coins
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 def transfer():
     try:
         sign = request.args['sign']
@@ -119,7 +140,6 @@ def transfer():
     sysData.pending_transactions.append([sender, receiver, amount, message, sign])
     return json.dumps({'ok': True})
 @app.route('/task',methods=['POST'])
-@limiter.limit("20/minute")
 def create_task():
     try:
         addr = request.args['addr']
@@ -135,7 +155,6 @@ def create_task():
     print(index)
     return json.dumps([y, sysData.diff[addr], task_id, index])
 @app.route('/check',methods=['POST'])
-@limiter.limit("20/minute")
 def check():
     try:
         tid = int(request.args['task_id'])
