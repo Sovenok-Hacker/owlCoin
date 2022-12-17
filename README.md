@@ -1,4 +1,4 @@
-# owlCoin ! 
+# OwlCoin ! 
 ![](/owlCoin.png)
 
 Cryptocurrecy, wrote in pure python.
