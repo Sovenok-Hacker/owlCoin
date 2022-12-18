@@ -10,10 +10,7 @@ db = plyvel.DB('db', create_if_missing=True)
 def get_block(index=1):
     return json.loads(db.get(str(index).encode()))
 def get_length():
-    i = 0
-    for k, v in db:
-        i += 1
-    return i
+    return len(list(db.iterator(include_value=False)))
 if not get_length():
     db.put(b'1', b'[[], 0, null, null, [null, null, null]]')
 class systemData():
