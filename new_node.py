@@ -10,7 +10,10 @@ db = plyvel.DB('db', create_if_missing=True)
 def get_block(index=1):
     return json.loads(db.get(str(index).encode()))
 def get_length():
-    return len(list(db.iterator(include_value=False)))
+    i = 0
+    for k, v in db:
+        i += 1
+    return i
 if not get_length():
     db.put(b'1', b'[[], 0, null, null, [null, null, null]]')
 class systemData():
@@ -128,13 +131,13 @@ def create_task():
         addr = request.args['addr']
     except KeyError:
         return json.dumps({'ok': False, 'message': 'You must specify your address (to get a reward).'})
-    y = random.randint(0, 1000000)
-    task_id = int(random.randint(0, y ** 2))
-    diff = get_length() // 1000
-    sysData.tasks.update({task_id: [y, diff, time.time(), addr]})
+    task_id = int(random.randint(0, get_length() ** 2))
+    l = get_length()
+    diff = l // 1000 if l > 1000 else 1
+    sysData.tasks.update({task_id: [diff, time.time(), addr]})
     index = get_length() + 1
     print(index)
-    return json.dumps([y, diff, task_id, index])
+    return json.dumps([get_length(), diff, task_id, index])
 @app.route('/check',methods=['POST'])
 # @limiter.limit("20/minute")
 def check():
@@ -145,17 +148,17 @@ def check():
         return json.dumps({'ok': False, 'message': 'You must specify the task ID and solution.'})
     if not sysData.tasks.get(tid):
         return json.dumps({'ok': False, 'message': 'Task ID is invalid or task already solved.'})
-    if hashlib.blake2s(str(sysData.tasks[tid][0] * solution).encode()).hexdigest().endswith('0' * sysData.tasks[tid][1]):
-        solved_in = time.time() - sysData.tasks[tid][2]
+    if hashlib.blake2s(str(get_length() * solution).encode()).hexdigest().endswith('0' * sysData.tasks[tid][0]):
+        solved_in = time.time() - sysData.tasks[tid][1]
         lb = get_block(get_length())
         nb = json.dumps([sysData.pending_transactions,
         round(time.time()),
-        hashlib.blake2s(json.dumps(sysData.pending_transactions + [sysData.tasks[tid][0], solution, sysData.tasks[tid][1], sysData.tasks[tid][3]] + [lb[1], lb[2]], ensure_ascii=False).encode()).hexdigest(),
+        hashlib.blake2s(json.dumps(sysData.pending_transactions + [solution, sysData.tasks[tid][0], sysData.tasks[tid][2]] + [lb[1], lb[2]], ensure_ascii=False).encode()).hexdigest(),
         lb[2],
-        [sysData.tasks[tid][0], solution, sysData.tasks[tid][1], sysData.tasks[tid][3]]], ensure_ascii=False)
+        [solution, sysData.tasks[tid][0], sysData.tasks[tid][2]]], ensure_ascii=False)
         db.put(str(get_length() + 1).encode(), nb.encode())
         sysData.pending_transactions = []
-        sysData.pending_transactions.append(['Blockchain', sysData.tasks[tid][3], 1.0, 'Thanks for mining!', 'Blockchain'])
+        sysData.pending_transactions.append(['Blockchain', sysData.tasks[tid][2], 1.0, 'Thanks for mining!', 'Blockchain'])
         for node in sysData.friends:
             try:
                 requests.post(f'{node}/announce_nb', json=lb)
