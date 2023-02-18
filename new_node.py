@@ -5,7 +5,7 @@ from ecdsa import SigningKey, VerifyingKey, NIST384p, BadSignatureError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 app = Flask('owlCoin')
-limiter = Limiter(app, key_func=get_remote_address)
+limiter = Limiter(app)
 db = plyvel.DB('db', create_if_missing=True)
 def get_block(index=1):
     return json.loads(db.get(str(index).encode()))
